@@ -1,3 +1,5 @@
 {
-  "directory": "bower_components"
+  "directory": "bower_components",
+  "proxy": "http://bobylev:7418557@192.168.10.1:3128",
+  "https-proxy": "http://bobylev:7418557@192.168.10.1:3128"
 }
