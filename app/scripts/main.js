@@ -5,34 +5,54 @@
     defaults: {
       title: '',
       completed: false,
-      description: ''
+      description: '',
+      project: 'unsorted'
     },
 
     initialize: function (){
-      console.log('This model has been initialized: ' + JSON.stringify(this)); // Log
+      //console.log('This model has been initialized: ' + JSON.stringify(this)); // Log
     }
-  }); //Extend BB model as Issue
-
-   var IssuesCollection = Backbone.Collection.extend({
-    model: Issue
   });
 
- 
+   var IssuesCollection = Backbone.Collection.extend({
+    model: Issue,
+
+    initialize: function(){
+      //console.log(JSON.stringify(this))
+    }
+  });
 
   var issuesList = new IssuesCollection([
 
       {
         title: 'issue #1',
-        completed: true
+        completed: true,
+        project: 'Movies'
+
       },
 
       {
         title: 'issue #2',
+        project: 'Games'
+      },
+
+      {
+        title: 'issue #3',
+        completed: true,
+        project: 'Study JavaScript'
+      },
+
+      {
+        title: 'issue #4',
+        completed: true,
+        project: 'Study JavaScript'
+      },
+
+      {
+        title: 'issue #5'
       }
 
     ]);
-
-  //var projectsList = new ProjectsCollection([issuesList]);
 
   console.log("List size: " + issuesList.length);
 
@@ -47,7 +67,9 @@
   });
 
   var MainView = TemplateView.extend({
+
     template: 'main',
+
     render: function () {
       TemplateView.prototype.render.call(this);
       this.projectListView = new ProjectListView({
@@ -74,16 +96,41 @@
 
 
   var ProjectListView = TemplateView.extend({
+
     template: 'project-list',
+
     getContext: function () {
-      return {
-        projects: [
-                    {name: 'Home project'},
-                    {name: 'Games'},
-                    {name: 'Movies'},
-                    {name: 'Study JavaScript'}
-        ]
+
+      var arr = issuesList.pluck('project');
+
+      function uniqueVal(value, index, self) { 
+        return self.indexOf(value) === index;
       }
+
+      arr = arr.filter( uniqueVal );
+
+      var project = [];
+
+      for(var i = 0; i < arr.length; i++){
+        project.push(
+          { name: arr[i] }
+        );
+      }
+
+      return {
+        projects: project
+      }
+    },
+
+    events: {
+      "click": "open"
+    },
+
+    open: function () {
+      console.log(this);
+      //console.log(e.get("project") + " is clicked");
+      //$(this.el).css("color", "red");
+      //controller.navigate("issue_list", true); // переход на страницу issue_list
     }
   });
 
@@ -131,28 +178,34 @@
     project_list: function () {
         $(".block").hide(); // Прячем все блоки
         $(".js-project-list").show(); // Показываем нужный
+        console.log("project_list is executed");
     },
 
     issue_list: function () {
         $(".block").hide();
         $(".js-issue-list").show();
+        console.log("issue_list is executed");
     },
 
     issue_detail: function () {
         $(".block").hide();
         $(".js-issue-detail").show();
+        console.log("issue_detail is executed");
     }
   });
 
   var controller = new Controller(); // Создаём контроллер
 
-  Backbone.history.start();  // Запускаем HTML5 History push  
+  Backbone.history.start();  // Запускаем HTML5 History push
 
   $(function () {
     var mainView = new MainView({
       el: $('#application')
     });
+
     mainView.render();
+    controller.project_list();
+
   });
 
 })();
