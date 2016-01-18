@@ -1,7 +1,56 @@
-<div class="list-group">
-	{{#issue}}
-	  <a href="#" class="list-group-item">
-	    {{description}}
-	  </a>
-   {{/issue}}
+<div class="btn-group" role="group" aria-label="...">
+	{{#routes}}
+		{{{route}}} /
+  {{/routes}}
+</div>
+<br><br>
+<div class="list-group" id="issue-table">
+	<li class="list-group-item">
+		<table class="table">
+			{{#issue}}
+			  <tr>
+					<td>
+						<strong>Name:</strong>
+					</td>
+					<td>
+						<h3>{{title}}</h3>
+					</td>
+			  </tr>
+				<tr>
+					<td>
+						<strong>Description:</strong>
+					</td>
+					<td>
+						<i>{{description}}</i>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<strong>Project:</strong>
+					</td>
+					<td class="text-muted">
+						{{project}}
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<strong>Completed:</strong>
+					</td>
+					<td>
+						<input type='checkbox' {{completed}}>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<strong>Action:</strong>
+					</td>
+					<td>
+						<button class="btn btn-success" id="issueShake-button">Shake</button>
+						<button class="btn btn-warning" id="issueEdit-button">Edit</button>
+						<button class="btn btn-danger" id="issueDelete-button">Delete</button>
+					</td>
+				</tr>
+		   {{/issue}}
+		</table>
+	 </li>
 </div>

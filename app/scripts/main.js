@@ -1,16 +1,27 @@
 (function () {
   'use strict';
 
+  var ENTER_KEY = 13;
+
+  var selectedProject = 'unsorted';
+  var selectedIssue = 'issueissue';
+
   var Issue = Backbone.Model.extend({
     defaults: {
       title: '',
       completed: false,
-      description: '',
+      description: 'none',
       project: 'unsorted'
     },
 
     initialize: function (){
-      //console.log('This model has been initialized: ' + JSON.stringify(this)); // Log
+      console.log(this.get('title') + " added");
+      this.on('change', function(){
+        console.log('- Values for this model have changed.');
+      });
+      this.on('remove', function(){
+        console.log('- Values for this model have removed.');
+      });
     }
   });
 
@@ -18,43 +29,63 @@
     model: Issue,
 
     initialize: function(){
-      //console.log(JSON.stringify(this))
+      console.log(JSON.stringify(this.models));
     }
   });
 
   var issuesList = new IssuesCollection([
 
       {
-        title: 'issue #1',
+        title: 'Le Petit Prince',
         completed: true,
+        description: 'About little prince and another',
         project: 'Movies'
-
       },
 
       {
-        title: 'issue #2',
+        title: 'Coriolan',
+        completed: true,
+        description: 'Basis on Sheakspeare`s tragedy',
+        project: 'Movies'
+      },
+
+      {
+        title: 'Postal',
+        completed: false,
+        description: 'Bullshit',
         project: 'Games'
       },
 
       {
-        title: 'issue #3',
+        title: 'Heroes of Might and Magic 3',
         completed: true,
+        description: 'Classic game',
+        project: 'Games'
+      },
+
+      {
+        title: 'Test Fix',
+        completed: true,
+        description: 'Test description',
         project: 'Study JavaScript'
       },
 
       {
-        title: 'issue #4',
-        completed: true,
+        title: 'Windows external error',
+        completed: false,
+        description: 'Very very important fix',
         project: 'Study JavaScript'
       },
 
       {
-        title: 'issue #5'
+        title: 'issueissue'
+      },
+
+      {
+        title: 'issueissueissue'
       }
 
     ]);
-
-  console.log("List size: " + issuesList.length);
 
   var TemplateView = Backbone.View.extend({
     render: function () {
@@ -77,11 +108,6 @@
       });
       this.projectListView.render();
 
-      this.routeListView = new RouteListView({
-        el: this.$('.js-route-list')
-      });
-      this.routeListView.render();
-
       this.issueListView = new IssueListView({
         el: this.$('.js-issue-list')
       });
@@ -94,7 +120,6 @@
     }
   });
 
-
   var ProjectListView = TemplateView.extend({
 
     template: 'project-list',
@@ -103,7 +128,7 @@
 
       var arr = issuesList.pluck('project');
 
-      function uniqueVal(value, index, self) { 
+      function uniqueVal(value, index, self) {
         return self.indexOf(value) === index;
       }
 
@@ -118,52 +143,148 @@
       }
 
       return {
+        routes: [
+          {route: '<a href="#/project_list">Home</a>'}
+        ],
+
         projects: project
       }
     },
 
     events: {
-      "click": "open"
+      "click .project": "open"
     },
 
-    open: function () {
-      console.log(this);
-      //console.log(e.get("project") + " is clicked");
-      //$(this.el).css("color", "red");
-      //controller.navigate("issue_list", true); // переход на страницу issue_list
-    }
-  });
-
-  var RouteListView = TemplateView.extend({
-    template: 'route-list',
-    getContext: function () {
-      return {
-        routes: [
-                    {name: 'Home'},
-                    {name: 'Next'}
-        ]
-      }
+    open: function (e) {
+      selectedProject = e.target.innerText;
+      console.log('Project "' + selectedProject + '" is clicked');
+      Backbone.trigger('refresh-IssueListView');
+      controller.navigate("issue_list/" + selectedProject, true); // переход на страницу issue_list
     }
   });
 
   var IssueListView = TemplateView.extend({
     template: 'issue-list',
     getContext: function () {
-      return {
-        issues: [
-                    {name: 'Issue #1'},
-                    {name: 'Issue #2'}
-        ]
+      var arr = issuesList.where({project: selectedProject});
+      for(var i = 0; i < arr.length; i++){
+        arr[i] = arr[i].pick('title');
       }
+      return {
+        routes: [
+          {route: '<a href="#/project_list">Home</a>'},
+          {route: selectedProject}
+        ],
+
+        issues: arr
+      }
+    },
+
+    initialize: function() {
+        this.listenTo(Backbone, 'refresh-IssueListView', this.refreshIssueListView);
+        this.listenTo(Backbone, 'issueDelete', this.issueDelete);
+    },
+
+    refreshIssueListView: function() {
+        this.render();
+    },
+
+    events: {
+      "click .issue": "open",
+      "click #newIssue-button": "newIssue",
+      "keypress #newIssue-input": "newIssueOnEnter"
+    },
+
+    open: function (e) {
+      selectedIssue = e.target.innerText;
+      console.log('Issue "' + selectedIssue + '" is clicked');
+      Backbone.trigger('refresh-IssueDetailView');
+      controller.navigate("issue_detail/" + selectedIssue, true); // переход на страницу issue_detail
+    },
+
+    newIssueOnEnter: function(e) {
+      if ( e.which === ENTER_KEY ) {
+         this.newIssue();
+      }
+    },
+
+    newIssue: function(){
+      issuesList.add({
+        title: $("#newIssue-input").val(),
+        project: selectedProject
+      });
+      Backbone.trigger('refresh-IssueListView');
+      //controller.navigate("issue_list/" + selectedProject, true);
+    },
+
+    issueDelete: function() {
+      issuesList.remove(issuesList.findWhere({title: selectedIssue}));
+      Backbone.trigger('refresh-IssueListView');
+      controller.navigate("issue_list/" + selectedProject, true);
     }
   });
 
   var IssueDetailView = TemplateView.extend({
     template: 'issue-detail',
     getContext: function () {
-      return {
-        issue: {name: 'Issue #1', description: "Blabla description about this issue"}
+      var findedIssue = issuesList.findWhere({title: selectedIssue});
+
+      function checkedOrUnchecked(){
+        if(findedIssue.get('completed')){
+          return 'checked';
+        } else {
+          return '';
+        }
       }
+
+      return {
+        routes: [
+          {route: '<a href="#/project_list">Home</a>'},
+          {route: selectedProject},
+          {route: '<a href="#/issue_list">IssueList</a>'},
+          {route: selectedIssue}
+        ],
+
+        issue: {
+          title: findedIssue.get('title'),
+          description: findedIssue.get('description'),
+          project: findedIssue.get('project'),
+          completed: checkedOrUnchecked()
+        }
+      }
+    },
+
+    initialize: function() {
+        this.listenTo(Backbone, 'refresh-IssueDetailView', this.refreshIssueDetailView);
+    },
+
+    refreshIssueDetailView: function() {
+        this.render();
+    },
+
+    events: {
+      "click #issueDelete-button": "issueDelete",
+      "click #issueShake-button" : "issueShake"
+    },
+
+    issueDelete: function() {
+      Backbone.trigger('issueDelete');
+    },
+
+    issueShake: function() {
+        $("#issue-table").animate({'margin-left': '25px'}, 50,
+          function(){
+            $("#issue-table").animate({'margin-left': '0px'}, 50,
+              function(){
+                $("#issue-table").animate({'margin-left': '25px'}, 50,
+                  function(){
+                     $("#issue-table").animate({'margin-left': '0px'}, 50)
+                  }
+                );
+              }
+            );
+          }
+        );
     }
   });
 
@@ -172,25 +293,23 @@
         "": "project_list", // Пустой hash-тэг
         "project_list": "project_list", // Начальная страница
         "issue_list": "issue_list",
-        "issue_detail": "issue_detail"
+        "issue_list/:project": "issue_list",
+        "issue_detail/:issue": "issue_detail"
     },
 
     project_list: function () {
         $(".block").hide(); // Прячем все блоки
         $(".js-project-list").show(); // Показываем нужный
-        console.log("project_list is executed");
     },
 
-    issue_list: function () {
+    issue_list: function (project) {
         $(".block").hide();
         $(".js-issue-list").show();
-        console.log("issue_list is executed");
     },
 
-    issue_detail: function () {
+    issue_detail: function (issue) {
         $(".block").hide();
         $(".js-issue-detail").show();
-        console.log("issue_detail is executed");
     }
   });
 

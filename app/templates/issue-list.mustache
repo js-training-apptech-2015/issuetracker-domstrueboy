@@ -1,7 +1,23 @@
+
+<div class="btn-group" role="group" aria-label="...">
+	{{#routes}}
+		{{{route}}} /
+  	{{/routes}}
+</div>
+<br><br>
 <div class="list-group">
+
+	<form class="form-inline">
+		<div class="input-group">
+		    <div class="input-group-addon">New Issue</div>
+		    <input type="text" class="form-control" id="newIssue-input" value="">
+		</div>
+	    <button class="btn btn-primary" id="newIssue-button">Add</button>
+	</form><br>
+
 	{{#issues}}
-	  <a href="#" class="list-group-item">
-	    {{name}}
-	  </a>
+	  <li class="list-group-item issue">
+	    <strong>{{title}}</strong>
+	  </li>
    {{/issues}}
 </div>

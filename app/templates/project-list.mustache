@@ -1,8 +1,14 @@
+<div class="btn-group" role="group" aria-label="...">
+	{{#routes}}
+		{{{route}}} /
+  	{{/routes}}
+</div>
+<br><br>
 <div class="list-group">
 	<ul>
 	{{#projects}}
-	  <li class="list-group-item">
-	    {{name}}
+	  <li class="list-group-item project">
+	    <strong>{{name}}</strong>
 	  </li>
    {{/projects}}
    </ul>
