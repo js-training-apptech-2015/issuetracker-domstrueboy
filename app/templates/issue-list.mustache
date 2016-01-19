@@ -5,16 +5,35 @@
   	{{/routes}}
 </div>
 <br><br>
-<div class="list-group">
+	<button class="btn btn-primary collapseNewIssue-button" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+	  Add new Issue
+	</button>
 
-	<form class="form-inline">
-		<div class="input-group">
-		    <div class="input-group-addon">New Issue</div>
-		    <input type="text" class="form-control" id="newIssue-input" value="">
+	<div class="collapse" id="collapseNewIssue-block">
+	<br>
+		<div class="well">
+			<form>
+				<div class="input-group">
+				    <div class="input-group-addon">New Issue</div>
+				    <input type="text" class="form-control" id="newIssue-input-title" value="">
+				</div>
+				<br>
+				<div class="input-group">
+				    <div class="input-group-addon">Description</div>
+				    <textarea id="newIssue-input-description" class="form-control" rows="4"></textarea>
+				</div>
+
+				<div class="checkbox">
+					<label><input  id="newIssue-input-completed" type="checkbox">Completed</label>
+				</div>
+
+				<button class="btn btn-primary btn-lg btn-block" id="newIssue-button">Add</button>			    
+			</form>
 		</div>
-	    <button class="btn btn-primary" id="newIssue-button">Add</button>
-	</form><br>
+	</div>
 
+<div class="list-group">
+<br>
 	{{#issues}}
 	  <li class="list-group-item issue">
 	    <strong>{{title}}</strong>

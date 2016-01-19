@@ -135,10 +135,14 @@
       arr = arr.filter( uniqueVal );
 
       var project = [];
+      var qt = []; //quantity
 
       for(var i = 0; i < arr.length; i++){
         project.push(
-          { name: arr[i] }
+          { 
+            name: arr[i],
+            qt: issuesList.where({project: arr[i]}).length
+          }
         );
       }
 
@@ -156,11 +160,21 @@
     },
 
     open: function (e) {
-      selectedProject = e.target.innerText;
-      console.log('Project "' + selectedProject + '" is clicked');
+
+      selectedProject = e.currentTarget.lastElementChild.innerText;
+
       Backbone.trigger('refresh-IssueListView');
       controller.navigate("issue_list/" + selectedProject, true); // переход на страницу issue_list
+    },
+
+    initialize: function() {
+        this.listenTo(Backbone, 'refresh-ProjectListView', this.refreshProjectListView);
+    },
+
+    refreshProjectListView: function() {
+      this.render();
     }
+
   });
 
   var IssueListView = TemplateView.extend({
@@ -192,7 +206,8 @@
     events: {
       "click .issue": "open",
       "click #newIssue-button": "newIssue",
-      "keypress #newIssue-input": "newIssueOnEnter"
+      "keypress #newIssue-input-title": "newIssueOnEnter",
+      "click .collapseNewIssue-button": "collapse"
     },
 
     open: function (e) {
@@ -209,18 +224,30 @@
     },
 
     newIssue: function(){
+
+      selectedIssue = $("#newIssue-input-title").val();
+
       issuesList.add({
-        title: $("#newIssue-input").val(),
-        project: selectedProject
+        title: selectedIssue,
+        project: selectedProject,
+        description: $("#newIssue-input-description").val(),
+        completed: $("#newIssue-input-completed").val()
       });
+
       Backbone.trigger('refresh-IssueListView');
-      //controller.navigate("issue_list/" + selectedProject, true);
+      Backbone.trigger('refresh-ProjectListView');
+      //controller.navigate("issue_detail/" + selectedIssue, true);
     },
 
     issueDelete: function() {
       issuesList.remove(issuesList.findWhere({title: selectedIssue}));
       Backbone.trigger('refresh-IssueListView');
+      Backbone.trigger('refresh-ProjectListView');
       controller.navigate("issue_list/" + selectedProject, true);
+    },
+
+    collapse: function() {
+      $("#collapseNewIssue-block").toggleClass("collapse");
     }
   });
 
