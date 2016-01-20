@@ -15,12 +15,11 @@
     },
 
     initialize: function (){
-      console.log(this.get('title') + " added");
       this.on('change', function(){
-        console.log('- Values for this model have changed.');
+        console.log('"' + this.get("title") + '" model have changed.');
       });
       this.on('remove', function(){
-        console.log('- Values for this model have removed.');
+        console.log('"' + this.get("title") + '" model have removed.');
       });
     }
   });
@@ -29,11 +28,39 @@
     model: Issue,
 
     initialize: function(){
-      console.log(JSON.stringify(this.models));
+      //console.log(JSON.stringify(this.models));
     }
   });
 
   var issuesList = new IssuesCollection([
+
+      {
+        title: "Editing issue`s props-fields",
+        project: "Our Issue Tracker",
+        description: "Need for add",
+        completed: false
+      },
+
+      {
+        title: "Adding and deleting projects",
+        project: "Our Issue Tracker",
+        description: "Need for add",
+        completed: false
+      },
+
+      {
+        title: "Editing project`s title",
+        project: "Our Issue Tracker",
+        description: "To add or not to add?",
+        completed: false
+      },
+
+      {
+        title: "Highlight new issue during a second",
+        project: "Our Issue Tracker",
+        description: "To add or not to add?",
+        completed: false
+      },
 
       {
         title: 'Le Petit Prince',
@@ -148,7 +175,7 @@
 
       return {
         routes: [
-          {route: '<a href="#/project_list">Home</a>'}
+          {route: '<span class="Home-link">Home</span>'}
         ],
 
         projects: project
@@ -156,7 +183,8 @@
     },
 
     events: {
-      "click .project": "open"
+      "click .project": "open",
+      "click .Home-link": "goHome"
     },
 
     open: function (e) {
@@ -173,6 +201,10 @@
 
     refreshProjectListView: function() {
       this.render();
+    },
+
+    goHome: function() {
+      controller.navigate("project_list", true);
     }
 
   });
@@ -186,7 +218,7 @@
       }
       return {
         routes: [
-          {route: '<a href="#/project_list">Home</a>'},
+          {route: '<span class="Home-link">Home</span>'},
           {route: selectedProject}
         ],
 
@@ -207,7 +239,8 @@
       "click .issue": "open",
       "click #newIssue-button": "newIssue",
       "keypress #newIssue-input-title": "newIssueOnEnter",
-      "click .collapseNewIssue-button": "collapse"
+      "click .collapseNewIssue-button": "collapse",
+      "click .Home-link": "goHome"
     },
 
     open: function (e) {
@@ -226,17 +259,21 @@
     newIssue: function(){
 
       selectedIssue = $("#newIssue-input-title").val();
+      console.log(selectedIssue);
 
-      issuesList.add({
-        title: selectedIssue,
-        project: selectedProject,
-        description: $("#newIssue-input-description").val(),
-        completed: $("#newIssue-input-completed").val()
-      });
+      issuesList.add(
+        {
+          title: selectedIssue,
+          project: selectedProject,
+          description: $("#newIssue-input-description").val(),
+          completed: $("#newIssue-input-completed").val()
+        }
+      );
 
-      Backbone.trigger('refresh-IssueListView');
       Backbone.trigger('refresh-ProjectListView');
-      //controller.navigate("issue_detail/" + selectedIssue, true);
+      Backbone.trigger('refresh-IssueListView');
+      
+      controller.navigate("issue_detail/" + selectedIssue, true);
     },
 
     issueDelete: function() {
@@ -248,6 +285,10 @@
 
     collapse: function() {
       $("#collapseNewIssue-block").toggleClass("collapse");
+    },
+
+    goHome: function() {
+      controller.navigate("project_list", true);
     }
   });
 
@@ -266,9 +307,9 @@
 
       return {
         routes: [
-          {route: '<a href="#/project_list">Home</a>'},
+          {route: '<span class="Home-link">Home</span>'},
           {route: selectedProject},
-          {route: '<a href="#/issue_list">IssueList</a>'},
+          {route: '<span class="IssuesList-link">Issues List</span>'},
           {route: selectedIssue}
         ],
 
@@ -291,7 +332,9 @@
 
     events: {
       "click #issueDelete-button": "issueDelete",
-      "click #issueShake-button" : "issueShake"
+      "click #issueShake-button" : "issueShake",
+      "click .Home-link": "goHome",
+      "click .IssuesList-link": "goToIssuesList"
     },
 
     issueDelete: function() {
@@ -312,15 +355,22 @@
             );
           }
         );
+    },
+
+    goHome: function() {
+      controller.navigate("project_list", true);
+    },
+
+    goToIssuesList: function() {
+      controller.navigate("issue_list", true);
     }
   });
 
   var Controller = Backbone.Router.extend({
     routes: {
-        "": "project_list", // Пустой hash-тэг
+        "(/)": "project_list", // Пустой hash-тэг
         "project_list": "project_list", // Начальная страница
-        "issue_list": "issue_list",
-        "issue_list/:project": "issue_list",
+        "issue_list(/:project)": "issue_list",
         "issue_detail/:issue": "issue_detail"
     },
 
@@ -342,7 +392,7 @@
 
   var controller = new Controller(); // Создаём контроллер
 
-  Backbone.history.start();  // Запускаем HTML5 History push
+  Backbone.history.start({pushState: true});/*, root: '/project_list/'*/ /*,hashChange: false*///hashChange: false});  // Запускаем HTML5 History push
 
   $(function () {
     var mainView = new MainView({

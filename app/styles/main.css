@@ -1,3 +1,12 @@
+.Home-link, .IssuesList-link {
+  color: SteelBlue;
+  text-decoration: underline;
+}
+
+.Home-link, .IssuesList-link:hover {
+  cursor:pointer;
+}
+
 .browserupgrade {
   margin: 0.2em 0;
   background: #ccc;
