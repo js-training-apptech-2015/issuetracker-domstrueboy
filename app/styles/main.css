@@ -3,8 +3,31 @@
   text-decoration: underline;
 }
 
+.detailView-input[disabled] {
+  color: black;
+  background-color: white;
+  border-style: none;
+  box-shadow: none;
+}
+
+#detailView-title {
+  font-family: Tahoma;
+  font-size: 1.7em;
+}
+
+#detailView-description {
+  font-family: Tahoma;
+  font-size: 1em;
+  font-style: italic;
+}
+
 .Home-link, .IssuesList-link:hover {
   cursor:pointer;
+}
+
+.badge {
+  background-color: SteelBlue;
+  font-size: 0.85em;
 }
 
 .browserupgrade {

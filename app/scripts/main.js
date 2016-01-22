@@ -8,7 +8,7 @@
 
   var Issue = Backbone.Model.extend({
     defaults: {
-      title: '',
+      title: 'noname',
       completed: false,
       description: 'none',
       project: 'unsorted'
@@ -175,7 +175,7 @@
 
       return {
         routes: [
-          {route: '<span class="Home-link">Home</span>'}
+          {route: '<span class="Home-link">Projects</span>'}
         ],
 
         projects: project
@@ -218,7 +218,7 @@
       }
       return {
         routes: [
-          {route: '<span class="Home-link">Home</span>'},
+          {route: '<span class="Home-link">Projects</span>'},
           {route: selectedProject}
         ],
 
@@ -245,7 +245,7 @@
 
     open: function (e) {
       selectedIssue = e.target.innerText;
-      console.log('Issue "' + selectedIssue + '" is clicked');
+
       Backbone.trigger('refresh-IssueDetailView');
       controller.navigate("issue_detail/" + selectedIssue, true); // переход на страницу issue_detail
     },
@@ -259,17 +259,26 @@
     newIssue: function(){
 
       selectedIssue = $("#newIssue-input-title").val();
-      console.log(selectedIssue);
+      var descr = $("#newIssue-input-description").val();
+
+      if(selectedIssue === ""){
+        selectedIssue = "noname";
+      }
+
+      if(descr === ""){
+        descr = "none";
+      }
 
       issuesList.add(
         {
           title: selectedIssue,
           project: selectedProject,
-          description: $("#newIssue-input-description").val(),
+          description: descr,
           completed: $("#newIssue-input-completed").val()
         }
       );
 
+      Backbone.trigger('refresh-IssueDetailView');
       Backbone.trigger('refresh-ProjectListView');
       Backbone.trigger('refresh-IssueListView');
       
@@ -295,10 +304,10 @@
   var IssueDetailView = TemplateView.extend({
     template: 'issue-detail',
     getContext: function () {
-      var findedIssue = issuesList.findWhere({title: selectedIssue});
+      var currentIssue = issuesList.findWhere({title: selectedIssue});
 
       function checkedOrUnchecked(){
-        if(findedIssue.get('completed')){
+        if(currentIssue.get('completed')){
           return 'checked';
         } else {
           return '';
@@ -307,23 +316,23 @@
 
       return {
         routes: [
-          {route: '<span class="Home-link">Home</span>'},
+          {route: '<span class="Home-link">Projects</span>'},
           {route: selectedProject},
-          {route: '<span class="IssuesList-link">Issues List</span>'},
+          {route: '<span class="IssuesList-link">Issues</span>'},
           {route: selectedIssue}
         ],
 
         issue: {
-          title: findedIssue.get('title'),
-          description: findedIssue.get('description'),
-          project: findedIssue.get('project'),
+          title: currentIssue.get('title'),
+          description: currentIssue.get('description'),
+          project: currentIssue.get('project'),
           completed: checkedOrUnchecked()
         }
       }
     },
 
     initialize: function() {
-        this.listenTo(Backbone, 'refresh-IssueDetailView', this.refreshIssueDetailView);
+        this.listenTo(Backbone, 'refresh-IssueDetailView', this.refreshIssueDetailView);     
     },
 
     refreshIssueDetailView: function() {
@@ -334,7 +343,10 @@
       "click #issueDelete-button": "issueDelete",
       "click #issueShake-button" : "issueShake",
       "click .Home-link": "goHome",
-      "click .IssuesList-link": "goToIssuesList"
+      "click .IssuesList-link": "goToIssuesList",
+      "click .issueEdit-button-editState": "editItem",
+      "click .issueEdit-button-saveState": "saveItem",
+      "dblclick .detailView-input": "editItem"
     },
 
     issueDelete: function() {
@@ -363,6 +375,39 @@
 
     goToIssuesList: function() {
       controller.navigate("issue_list", true);
+    },
+
+    editItem: function() {
+      $(".detailView-input").removeAttr("disabled");
+      $("#issueEdit-button").text("Save").toggleClass("btn-warning")
+                                          .toggleClass("btn-primary")
+                                          .removeClass("issueEdit-button-editState")
+                                          .addClass("issueEdit-button-saveState");
+    },
+
+    saveItem: function() {
+
+      var currentModel = issuesList.findWhere({title: selectedIssue});
+
+      selectedIssue = $("#detailView-title").val()
+
+      currentModel.set({
+        title: selectedIssue,
+        description: $("#detailView-description").val(),
+        completed: $("#detailView-completed").val()
+      });
+
+      $(".detailView-input").attr("disabled", "disabled");
+      $("#issueEdit-button").text("Edit").toggleClass("btn-warning")
+                                          .toggleClass("btn-primary")
+                                          .removeClass("issueEdit-button-saveState")
+                                          .addClass("issueEdit-button-editState");
+
+      Backbone.trigger('refresh-IssueDetailView');
+      //Backbone.trigger('refresh-ProjectListView');
+      Backbone.trigger('refresh-IssueListView');
+
+      //controller.navigate("issue_detail/" + selectedIssue, true);
     }
   });
 

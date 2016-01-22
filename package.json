@@ -27,6 +27,11 @@
     "opn": "^1.0.1",
     "wiredep": "^2.2.2"
   },
+  "dependencies": {
+    "express": "~4.13.4",
+    "path": "~0.12.7",
+    "mongoose": "~4.3.6"
+  },
   "eslintConfig": {
     "env": {
       "node": true,

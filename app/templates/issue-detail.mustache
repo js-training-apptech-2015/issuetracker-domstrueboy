@@ -13,7 +13,7 @@
 						<strong>Name:</strong>
 					</td>
 					<td>
-						<h3>{{title}}</h3>
+						<input type="text" name="" class="form-control detailView-input" id="detailView-title" value="{{title}}" disabled>
 					</td>
 			  </tr>
 				<tr>
@@ -21,7 +21,7 @@
 						<strong>Description:</strong>
 					</td>
 					<td>
-						<i>{{description}}</i>
+						<textarea name="" class="form-control detailView-input" id="detailView-description" rows="4" disabled>{{description}}</textarea>
 					</td>
 				</tr>
 				<tr>
@@ -37,7 +37,7 @@
 						<strong>Completed:</strong>
 					</td>
 					<td>
-						<input type='checkbox' {{completed}}>
+						<input type='checkbox' class="detailView-input" id="detailView-completed" {{completed}} disabled>
 					</td>
 				</tr>
 				<tr>
@@ -46,7 +46,7 @@
 					</td>
 					<td>
 						<button class="btn btn-success" id="issueShake-button">Shake</button>
-						<button class="btn btn-warning" id="issueEdit-button">Edit</button>
+						<button class="btn btn-warning issueEdit-button-editState" id="issueEdit-button">Edit</button>
 						<button class="btn btn-danger" id="issueDelete-button">Delete</button>
 					</td>
 				</tr>
