@@ -1,7 +1,12 @@
-{
+{ "name": "issuetracker-domstrueboy",
+  "version": "0.0.1",
   "private": true,
   "engines": {
     "node": ">=0.12.0"
+  },
+  "scripts": {
+    "start": "node app/scripts/server.js",
+    "postinstall": "bower install && gulp serve"
   },
   "devDependencies": {
     "babel-core": "^5.8.35",
@@ -33,6 +38,10 @@
     "express": "^4.13.4",
     "mongoose": "^4.3.7",
     "path": "^0.12.7"
+  },
+    "repository": {
+    "type": "git",
+    "url": "https://github.com/js-training-apptech-2015/issuetracker-domstrueboy"
   },
   "eslintConfig": {
     "env": {

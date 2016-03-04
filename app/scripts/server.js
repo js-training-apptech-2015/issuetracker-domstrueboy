@@ -140,6 +140,6 @@ app.delete( '/issue_detail/:id', function( request, response ) {
 
 var port = 5000;
 
-app.listen(port, function() {
+app.listen(process.env.PORT || port, function() {
 	console.log('Express server listening on port %d', port)
 });
