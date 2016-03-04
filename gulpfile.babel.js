@@ -4,6 +4,7 @@ import gulpLoadPlugins from 'gulp-load-plugins';
 import browserSync from 'browser-sync';
 import del from 'del';
 import {stream as wiredep} from 'wiredep';
+import nodemon from 'gulp-nodemon';
 
 const $ = gulpLoadPlugins();
 const reload = browserSync.reload;
@@ -96,16 +97,29 @@ gulp.task('mustache', () => {
 
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
-gulp.task('serve', ['styles', 'fonts', 'mustache'], () => {
+gulp.task('nodemon', function (cb) {
+
+  var started = false;
+
+  return nodemon({
+    script: 'app/scripts/server.js'
+  }).on('start', function () {
+    // to avoid nodemon being started multiple times
+    // thanks @matthisk
+    if (!started) {
+      cb();
+      started = true;
+    }
+  });
+});
+
+gulp.task('serve', ['styles', 'fonts', 'mustache', 'nodemon'], () => {
   browserSync({
+    proxy: "http://localhost:5000",
     notify: false,
     port: 9000,
-    server: {
-      baseDir: ['.tmp', 'app'],
-      routes: {
-        '/bower_components': 'bower_components'
-      }
-    }
+    files: ['.tmp', 'app'],
+    serveStatic: ['.', './app']
   });
 
   gulp.watch([

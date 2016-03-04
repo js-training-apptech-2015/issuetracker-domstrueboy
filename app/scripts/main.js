@@ -4,9 +4,11 @@
   var ENTER_KEY = 13;
 
   var selectedProject = 'unsorted';
-  var selectedIssue = 'issueissue';
+  var selectedIssue = 'noname';
+  var selectedIssueID = '';
 
   var Issue = Backbone.Model.extend({
+
     defaults: {
       title: 'noname',
       completed: false,
@@ -14,105 +16,59 @@
       project: 'unsorted'
     },
 
+    sync: function (method, model, options) { //переопределение стандартного метода sync
+      /*if (method === 'create') { //create → POST   (/collection - стандартный путь)
+        console.log('arguments: ' + JSON.stringify(arguments["2"]));
+      }*/
+      if (method === 'read') { //read → GET   (/collection[/id] - стандартный путь)
+        arguments["2"].url = '/issue_detail/' + model.id;
+        //selectedIssue = model.title;
+        console.log('arguments: ' + JSON.stringify(arguments["2"]));
+      }else if (method === 'update') { //update → PUT   (/collection/id - стандартный путь)
+        arguments["2"].url = '/issue_detail/' + model.id;
+        console.log('arguments: ' + JSON.stringify(arguments["2"]));
+      }else if (method === 'delete') { //delete → DELETE   (/collection/id - стандартный путь)
+        arguments["2"].url = '/issue_detail/' + model.id;
+        console.log('arguments: ' + JSON.stringify(arguments["2"]));
+      }
+      return Backbone.sync.apply(this, arguments);
+    },
+
     initialize: function (){
+
       this.on('change', function(){
         console.log('"' + this.get("title") + '" model have changed.');
       });
       this.on('remove', function(){
         console.log('"' + this.get("title") + '" model have removed.');
       });
+      this.on('sync', function  () {
+        console.log("sync!");
+
+        Backbone.trigger('refresh-IssueDetailView');
+        Backbone.trigger('refresh-ProjectListView');
+        Backbone.trigger('refresh-IssueListView');
+      });
+    },
+
+    parse: function(response) {
+      response.id = response._id;
+      return response;
     }
   });
 
    var IssuesCollection = Backbone.Collection.extend({
     model: Issue,
+    url: '/issue_list',
 
     initialize: function(){
-      //console.log(JSON.stringify(this.models));
+      $(".block").hide();
+      $(".please_wait").show();
+      this.fetch({reset: true, success: function(){controller.project_list()}});
     }
   });
 
-  var issuesList = new IssuesCollection([
-
-      {
-        title: "Editing issue`s props-fields",
-        project: "Our Issue Tracker",
-        description: "Need for add",
-        completed: false
-      },
-
-      {
-        title: "Adding and deleting projects",
-        project: "Our Issue Tracker",
-        description: "Need for add",
-        completed: false
-      },
-
-      {
-        title: "Editing project`s title",
-        project: "Our Issue Tracker",
-        description: "To add or not to add?",
-        completed: false
-      },
-
-      {
-        title: "Highlight new issue during a second",
-        project: "Our Issue Tracker",
-        description: "To add or not to add?",
-        completed: false
-      },
-
-      {
-        title: 'Le Petit Prince',
-        completed: true,
-        description: 'About little prince and another',
-        project: 'Movies'
-      },
-
-      {
-        title: 'Coriolan',
-        completed: true,
-        description: 'Basis on Sheakspeare`s tragedy',
-        project: 'Movies'
-      },
-
-      {
-        title: 'Postal',
-        completed: false,
-        description: 'Bullshit',
-        project: 'Games'
-      },
-
-      {
-        title: 'Heroes of Might and Magic 3',
-        completed: true,
-        description: 'Classic game',
-        project: 'Games'
-      },
-
-      {
-        title: 'Test Fix',
-        completed: true,
-        description: 'Test description',
-        project: 'Study JavaScript'
-      },
-
-      {
-        title: 'Windows external error',
-        completed: false,
-        description: 'Very very important fix',
-        project: 'Study JavaScript'
-      },
-
-      {
-        title: 'issueissue'
-      },
-
-      {
-        title: 'issueissueissue'
-      }
-
-    ]);
+  var issuesList = new IssuesCollection();
 
   var TemplateView = Backbone.View.extend({
     render: function () {
@@ -166,7 +122,7 @@
 
       for(var i = 0; i < arr.length; i++){
         project.push(
-          { 
+          {
             name: arr[i],
             qt: issuesList.where({project: arr[i]}).length
           }
@@ -197,6 +153,7 @@
 
     initialize: function() {
         this.listenTo(Backbone, 'refresh-ProjectListView', this.refreshProjectListView);
+        this.listenTo(issuesList, 'reset', this.refreshProjectListView);
     },
 
     refreshProjectListView: function() {
@@ -229,6 +186,7 @@
     initialize: function() {
         this.listenTo(Backbone, 'refresh-IssueListView', this.refreshIssueListView);
         this.listenTo(Backbone, 'issueDelete', this.issueDelete);
+        this.listenTo(issuesList, 'reset', this.refreshIssueListView);
     },
 
     refreshIssueListView: function() {
@@ -244,10 +202,14 @@
     },
 
     open: function (e) {
+
       selectedIssue = e.target.innerText;
 
-      Backbone.trigger('refresh-IssueDetailView');
-      controller.navigate("issue_detail/" + selectedIssue, true); // переход на страницу issue_detail
+      issuesList.findWhere({title: selectedIssue}).fetch({success: function(model, response) {
+          Backbone.trigger('refresh-IssueListView');
+          Backbone.trigger('refresh-ProjectListView');
+          controller.navigate("issue_detail/" + model.id, true);
+      }});
     },
 
     newIssueOnEnter: function(e) {
@@ -256,40 +218,29 @@
       }
     },
 
-    newIssue: function(){
+    newIssue: function(e){
 
-      selectedIssue = $("#newIssue-input-title").val();
-      var descr = $("#newIssue-input-description").val();
-
-      if(selectedIssue === ""){
-        selectedIssue = "noname";
-      }
-
-      if(descr === ""){
-        descr = "none";
-      }
-
-      issuesList.add(
+      var newModel = issuesList.create(
         {
-          title: selectedIssue,
+          title: $("#newIssue-input-title").val(),
           project: selectedProject,
-          description: descr,
+          description: $("#newIssue-input-description").val(),
           completed: $("#newIssue-input-completed").val()
-        }
+        },
+        {wait: true} //model not created until server don`t responsed
       );
 
-      Backbone.trigger('refresh-IssueDetailView');
-      Backbone.trigger('refresh-ProjectListView');
-      Backbone.trigger('refresh-IssueListView');
-      
-      controller.navigate("issue_detail/" + selectedIssue, true);
+      controller.navigate("issue_list/" + newModel.id, true);
     },
 
     issueDelete: function() {
-      issuesList.remove(issuesList.findWhere({title: selectedIssue}));
-      Backbone.trigger('refresh-IssueListView');
-      Backbone.trigger('refresh-ProjectListView');
-      controller.navigate("issue_list/" + selectedProject, true);
+      issuesList.findWhere({title: selectedIssue}).destroy({success: function(model, response) {
+          console.log(model.title + ' deleted!');
+          Backbone.trigger('refresh-IssueListView');
+          Backbone.trigger('refresh-ProjectListView');
+          controller.navigate("issue_list/" + model.project, true);
+      }}, {wait: true});
+
     },
 
     collapse: function() {
@@ -332,7 +283,7 @@
     },
 
     initialize: function() {
-        this.listenTo(Backbone, 'refresh-IssueDetailView', this.refreshIssueDetailView);     
+        this.listenTo(Backbone, 'refresh-IssueDetailView', this.refreshIssueDetailView);
     },
 
     refreshIssueDetailView: function() {
@@ -374,7 +325,7 @@
     },
 
     goToIssuesList: function() {
-      controller.navigate("issue_list", true);
+      controller.navigate("issue_list/" + selectedProject, true);
     },
 
     editItem: function() {
@@ -391,11 +342,11 @@
 
       selectedIssue = $("#detailView-title").val()
 
-      currentModel.set({
+      currentModel.save({
         title: selectedIssue,
         description: $("#detailView-description").val(),
         completed: $("#detailView-completed").val()
-      });
+      }, {wait: true});
 
       $(".detailView-input").attr("disabled", "disabled");
       $("#issueEdit-button").text("Edit").toggleClass("btn-warning")
@@ -404,10 +355,7 @@
                                           .addClass("issueEdit-button-editState");
 
       Backbone.trigger('refresh-IssueDetailView');
-      //Backbone.trigger('refresh-ProjectListView');
       Backbone.trigger('refresh-IssueListView');
-
-      //controller.navigate("issue_detail/" + selectedIssue, true);
     }
   });
 
@@ -415,7 +363,7 @@
     routes: {
         "(/)": "project_list", // Пустой hash-тэг
         "project_list": "project_list", // Начальная страница
-        "issue_list(/:project)": "issue_list",
+        "issue_list/:project": "issue_list",
         "issue_detail/:issue": "issue_detail"
     },
 
@@ -437,7 +385,7 @@
 
   var controller = new Controller(); // Создаём контроллер
 
-  Backbone.history.start({pushState: true});/*, root: '/project_list/'*/ /*,hashChange: false*///hashChange: false});  // Запускаем HTML5 History push
+  Backbone.history.start({pushState: true});// Запускаем HTML5 History push
 
   $(function () {
     var mainView = new MainView({
@@ -445,7 +393,6 @@
     });
 
     mainView.render();
-    controller.project_list();
 
   });
 
