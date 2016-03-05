@@ -102,7 +102,7 @@ gulp.task('nodemon', function (cb) {
   var started = false;
 
   return nodemon({
-    script: 'app/scripts/server.js'
+    script: 'server.js'
   }).on('start', function () {
     // to avoid nodemon being started multiple times
     // thanks @matthisk

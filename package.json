@@ -5,10 +5,10 @@
   "engines": {
     "node": ">=0.12.0"
   },
-  "main": "app/index.html",
+  
   "scripts": {
-    "start": "node app/scripts/server.js",
-    "postinstall": "bower install && gulp serve"
+    "start": "node server.js",
+    "postinstall": "bower install && gulp build"
   },
   "devDependencies": {
     "babel-core": "^5.8.35",

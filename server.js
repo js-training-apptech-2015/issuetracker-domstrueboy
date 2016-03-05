@@ -11,7 +11,9 @@ mongoose = require( 'mongoose' ); //MongoDB integration
 var app = express();
 var router = express.Router();
 
-app.use(express.static(application_root));
+//где сохранить статическое содержимое
+app.use( express.static( path.join( application_root, 'dist' ) ) );
+//app.use( express.static( application_root ) );
 
 app.use(bodyParser.json());
 
@@ -37,26 +39,6 @@ var issueSchema = new mongoose.Schema({
 var IssueModel = mongoose.model( 'Issue', issueSchema );
 
 //получение списка всех тикетов
-/*app.get( '/', function( request, response ) {
-    return IssueModel.find( function( err, issues ) {
-        if( !err ) {
-            return response.send( issues );
-        } else {
-            return console.log( err );
-        }
-    });
-});
-
-app.get( '/project_list', function( request, response ) {
-    return IssueModel.find( function( err, issues ) {
-        if( !err ) {
-            return response.send( issues );
-        } else {
-            return console.log( err );
-        }
-    });
-});*/
-
 app.get( '/issue_list', function( request, response ) {
     return IssueModel.find( function( err, issues ) {
         if( !err ) {

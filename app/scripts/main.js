@@ -18,11 +18,9 @@
 
     sync: function (method, model, options) { //переопределение стандартного метода sync
       /*if (method === 'create') { //create → POST   (/collection - стандартный путь)
-        console.log('arguments: ' + JSON.stringify(arguments["2"]));
       }*/
       if (method === 'read') { //read → GET   (/collection[/id] - стандартный путь)
         arguments["2"].url = '/issue_detail/' + model.id;
-        //selectedIssue = model.title;
         console.log('arguments: ' + JSON.stringify(arguments["2"]));
       }else if (method === 'update') { //update → PUT   (/collection/id - стандартный путь)
         arguments["2"].url = '/issue_detail/' + model.id;
@@ -43,8 +41,6 @@
         console.log('"' + this.get("title") + '" model have removed.');
       });
       this.on('sync', function  () {
-        console.log("sync!");
-
         Backbone.trigger('refresh-IssueDetailView');
         Backbone.trigger('refresh-ProjectListView');
         Backbone.trigger('refresh-IssueListView');
@@ -208,7 +204,7 @@
       issuesList.findWhere({title: selectedIssue}).fetch({success: function(model, response) {
           Backbone.trigger('refresh-IssueListView');
           Backbone.trigger('refresh-ProjectListView');
-          controller.navigate("issue_detail/" + model.id, true);
+          controller.navigate("issue_detail/" + model.get('id'), true);
       }});
     },
 
@@ -220,25 +216,33 @@
 
     newIssue: function(e){
 
-      var newModel = issuesList.create(
+      issuesList.create(
         {
           title: $("#newIssue-input-title").val(),
           project: selectedProject,
           description: $("#newIssue-input-description").val(),
           completed: $("#newIssue-input-completed").val()
         },
-        {wait: true} //model not created until server don`t responsed
+        {wait: true, //model not created until server don`t responsed
+         success: function(model, response){
+            selectedIssue = model.get('title');
+            console.log("selectedIssue " +   selectedIssue);
+            Backbone.trigger('refresh-IssueDetailView');
+            controller.navigate("issue_detail/" + model.get('id'), true);
+         },
+         error: function(err){
+            console.log(err);
+         }
+        }
       );
-
-      controller.navigate("issue_list/" + newModel.id, true);
     },
 
     issueDelete: function() {
       issuesList.findWhere({title: selectedIssue}).destroy({success: function(model, response) {
-          console.log(model.title + ' deleted!');
+          console.log(model.get('title') + ' deleted!');
           Backbone.trigger('refresh-IssueListView');
           Backbone.trigger('refresh-ProjectListView');
-          controller.navigate("issue_list/" + model.project, true);
+          controller.navigate("issue_list/" + model.get('project'), true);
       }}, {wait: true});
 
     },
@@ -274,7 +278,7 @@
         ],
 
         issue: {
-          title: currentIssue.get('title'),
+          title: selectedIssue,
           description: currentIssue.get('description'),
           project: currentIssue.get('project'),
           completed: checkedOrUnchecked()
